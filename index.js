@@ -1,4 +1,4 @@
-import { saveSettingsDebounced, eventSource} from '../../../../script.js';
+import { saveSettingsDebounced, eventSource, event_types} from '../../../../script.js';
 import { extension_settings } from '../../../extensions.js';
 import { t } from '../../../i18n.js';
 
