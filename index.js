@@ -1,7 +1,6 @@
 import { saveSettingsDebounced } from '../../../../script.js';
 import { extension_settings } from '../../../extensions.js';
 import { t } from '../../../i18n.js';
-import toastr from '../../../toastr.js';
 
 const MODULE_NAME = 'Extension-MessageImageGen';
 
