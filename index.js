@@ -22,45 +22,19 @@ export { MODULE_NAME };
 
 const MODULE_NAME = 'Extension-MessageImageGen';
 
-async function generateImageFromMessage(message) {
-    const tagRegex = /<img name="Image">([^<]+)<\/img>/;
-    const match = message.match(tagRegex);
-    if (!match) return null;
-
-    const tags = match[1].split(',').map(tag => tag.trim());
-    const apiUrl = getApiUrl(); // Assuming getApiUrl provides the third-party AI endpoint
-
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: getRequestHeaders(),
-            body: JSON.stringify({ tags }),
-        });
-
-        if (!response.ok) throw new Error('Failed to generate image');
-        const imageUrl = await response.text();
-
-        return message.replace(tagRegex, `<img src="${imageUrl}" alt="Generated Image"/>`);
-    } catch (error) {
-        console.error('Error generating image:', error);
-        return message;
-    }
-}
-
+// Register the extension with SillyTavern
 function registerExtension() {
-    modules.register(MODULE_NAME, {
-        name: MODULE_NAME,
-        description: 'Generates images based on message tags.',
-        version: '1.0.0',
-        author: 'Your Name',
-        onLoad: () => {
-            console.log(`${MODULE_NAME} loaded successfully.`);
-        },
-        onUnload: () => {
-            console.log(`${MODULE_NAME} unloaded.`);
-        },
-    });
+    // Placeholder: Add extension registration logic here
+    // For example, register commands, UI, or hooks
+    console.log(`[${MODULE_NAME}] Extension registered.`);
 }
 
-// Automatically register the extension when loaded
-registerExtension();
+// Auto-register if SillyTavern supports it
+if (typeof window !== 'undefined' && window.registerExtension) {
+    window.registerExtension(MODULE_NAME, registerExtension);
+}
+
+export default {
+    MODULE_NAME,
+    registerExtension,
+};
