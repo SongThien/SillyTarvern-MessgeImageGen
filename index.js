@@ -37,7 +37,7 @@ async function showSettingsUI() {
         toastr.success(t`Settings saved`);
     });
     // Show popup or drawer
-    // ...existing code to show template...
+    template.appendTo('body').show();
 }
 
 function extractTagsFromMessage(message) {
@@ -69,6 +69,7 @@ async function generateImage(tags) {
 
 async function onMessage(event) {
     const { message, messageId } = event.detail;
+    if (!/<img[^>]*>.*?<\/img>/i.test(message)) return;
     const tags = extractTagsFromMessage(message);
     if (!tags) return;
     const imageUrl = await generateImage(tags);
@@ -76,6 +77,7 @@ async function onMessage(event) {
         // Replace <img ...>...</img> with actual image in the message
         const newMessage = message.replace(/<img[^>]*>.*?<\/img>/i, `<img src="${imageUrl}" alt="Generated Image" />`);
         // Update message in chat (implementation depends on chat system)
+        // Example: updateMessageInChat(messageId, newMessage);
         // ...existing code to update message...
     }
 }
@@ -84,7 +86,12 @@ function registerExtension() {
     loadSettings();
     eventSource.on(event_types.MESSAGE_SENT, onMessage);
     // Add UI button/menu for settings
-    // ...existing code to add settings button...
+    if ($('#message_imagegen_settings_btn').length === 0) {
+        const btn = $('<button id="message_imagegen_settings_btn" class="menu_button">ImageGen Settings</button>');
+        btn.on('click', showSettingsUI);
+        // Add to a suitable toolbar/menu, here just append to body for demo
+        $('body').append(btn);
+    }
 }
 
 registerExtension();
