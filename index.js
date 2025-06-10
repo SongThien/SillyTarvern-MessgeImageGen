@@ -22,95 +22,45 @@ export { MODULE_NAME };
 
 const MODULE_NAME = 'Extension-MessageImageGen';
 
-let settings = {
-    comfyui_url: 'http://127.0.0.1:8188',
-    negative_prompt: '',
-    sampler: 'euler',
-    // ...existing code...
-};
+async function generateImageFromMessage(message) {
+    const tagRegex = /<img name="Image">([^<]+)<\/img>/;
+    const match = message.match(tagRegex);
+    if (!match) return null;
 
-function loadSettings() {
-    const extSettings = extension_settings[MODULE_NAME] || {};
-    settings = { ...settings, ...extSettings };
-}
+    const tags = match[1].split(',').map(tag => tag.trim());
+    const apiUrl = getApiUrl(); // Assuming getApiUrl provides the third-party AI endpoint
 
-function saveSettings() {
-    extension_settings[MODULE_NAME] = { ...settings };
-    saveSettingsDebounced();
-}
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: getRequestHeaders(),
+            body: JSON.stringify({ tags }),
+        });
 
-async function showSettingsUI() {
-    const template = $(await renderExtensionTemplateAsync(MODULE_NAME, 'settings', settings));
-    // Bind UI events for settings
-    template.find('#comfyui_url').val(settings.comfyui_url).on('input', function () {
-        settings.comfyui_url = $(this).val();
-    });
-    template.find('#negative_prompt').val(settings.negative_prompt).on('input', function () {
-        settings.negative_prompt = $(this).val();
-    });
-    template.find('#sampler').val(settings.sampler).on('change', function () {
-        settings.sampler = $(this).val();
-    });
-    template.find('#save_settings').on('click', function () {
-        saveSettings();
-        toastr.success(t`Settings saved`);
-    });
-    // Show popup or drawer
-    template.appendTo('body').show();
-}
+        if (!response.ok) throw new Error('Failed to generate image');
+        const imageUrl = await response.text();
 
-function extractTagsFromMessage(message) {
-    // Extract tags from <img name="Image">...</img>
-    const match = message.match(/<img[^>]*>(.*?)<\/img>/i);
-    if (match) {
-        return match[1].split(',').map(x => x.trim()).filter(Boolean);
-    }
-    return null;
-}
-
-async function generateImage(tags) {
-    // Call ComfyUI or other backend with tags and settings
-    // This is a placeholder for actual API call
-    const response = await fetch(`${settings.comfyui_url}/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            prompt: tags.join(','),
-            negative_prompt: settings.negative_prompt,
-            sampler: settings.sampler,
-            // ...existing code...
-        }),
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.image_url || null;
-}
-
-async function onMessage(event) {
-    const { message, messageId } = event.detail;
-    if (!/<img[^>]*>.*?<\/img>/i.test(message)) return;
-    const tags = extractTagsFromMessage(message);
-    if (!tags) return;
-    const imageUrl = await generateImage(tags);
-    if (imageUrl) {
-        // Replace <img ...>...</img> with actual image in the message
-        const newMessage = message.replace(/<img[^>]*>.*?<\/img>/i, `<img src="${imageUrl}" alt="Generated Image" />`);
-        // Update message in chat (implementation depends on chat system)
-        // Example: updateMessageInChat(messageId, newMessage);
-        // ...existing code to update message...
+        return message.replace(tagRegex, `<img src="${imageUrl}" alt="Generated Image"/>`);
+    } catch (error) {
+        console.error('Error generating image:', error);
+        return message;
     }
 }
 
 function registerExtension() {
-    loadSettings();
-    eventSource.on(event_types.MESSAGE_SENT, onMessage);
-    // Add UI button/menu for settings
-    if ($('#message_imagegen_settings_btn').length === 0) {
-        const btn = $('<button id="message_imagegen_settings_btn" class="menu_button">ImageGen Settings</button>');
-        btn.on('click', showSettingsUI);
-        // Add to a suitable toolbar/menu, here just append to body for demo
-        $('body').append(btn);
-    }
+    modules.register(MODULE_NAME, {
+        name: MODULE_NAME,
+        description: 'Generates images based on message tags.',
+        version: '1.0.0',
+        author: 'Your Name',
+        onLoad: () => {
+            console.log(`${MODULE_NAME} loaded successfully.`);
+        },
+        onUnload: () => {
+            console.log(`${MODULE_NAME} unloaded.`);
+        },
+    });
 }
 
+// Automatically register the extension when loaded
 registerExtension();
