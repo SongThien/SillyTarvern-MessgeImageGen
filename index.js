@@ -1,5 +1,7 @@
-import { eventSource, event_types, extension_settings, renderExtensionTemplateAsync, saveSettingsDebounced } from '../../../public/scripts/extensions.js';
-import { t } from '../../../public/scripts/i18n.js';
+import { saveSettingsDebounced } from '../../../../script.js';
+import { extension_settings } from '../../../extensions.js';
+import { t } from '../../../i18n.js';
+import toastr from '../../../toastr.js';
 
 const MODULE_NAME = 'Extension-MessageImageGen';
 
@@ -7,7 +9,7 @@ let settings = {
     comfyui_url: 'http://127.0.0.1:8188',
     negative_prompt: '',
     sampler: 'euler',
-    // ...add more settings as needed
+    // ...existing code...
 };
 
 function loadSettings() {
@@ -59,7 +61,7 @@ async function generateImage(tags) {
             prompt: tags.join(','),
             negative_prompt: settings.negative_prompt,
             sampler: settings.sampler,
-            // ...other params...
+            // ...existing code...
         }),
     });
     if (!response.ok) return null;
